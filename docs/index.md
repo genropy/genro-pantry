@@ -1,86 +1,75 @@
 # Pantry
 
 [![GitHub](https://img.shields.io/badge/GitHub-genro--pantry-blue?logo=github)](https://github.com/genropy/genro-pantry)
+[![PyPI](https://img.shields.io/pypi/v/mypantry)](https://pypi.org/project/mypantry/)
+[![Python](https://img.shields.io/pypi/pyversions/mypantry)](https://pypi.org/project/mypantry/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/genropy/genro-pantry/blob/main/LICENSE)
 
-Runtime capability registry for optional Python dependencies.
+**Runtime capability registry for optional Python dependencies.**
 
-Pantry discovers optional dependency groups declared in `pyproject.toml`, probes which packages are actually installed, and exposes a clean API to check availability and guard functions via decorators.
+Pantry discovers optional dependency groups declared in `pyproject.toml`,
+probes which packages are actually installed, and exposes a clean API
+to check availability, import modules safely, and guard functions via decorators.
 
-## Quick Start
+## Why Pantry?
+
+When your library supports optional features powered by third-party packages,
+you need a clean way to:
+
+- Check what's installed at runtime
+- Import optional modules safely
+- Fail with clear error messages when a feature is used but its dependency is missing
+- Show users which optional packages are available
+
+Pantry handles all of this with zero configuration — just declare your
+optional dependencies in `pyproject.toml` as you normally would.
+
+## At a Glance
 
 ```python
 import pantry
 
-# Subscript access — raises if missing
+# Direct import — raises RuntimeError if missing
 PIL = pantry["pillow"]
-img = PIL.Image.open("photo.jpg")
 
-# Safe access — returns None (or a default) if missing
+# Safe import — returns None if missing
 np = pantry.get("numpy")
-redis = pantry.get("redis", None)
 
-# Check availability
-if pantry.has("pillow"):
-    ...
+# Check before use
+if pantry.has("redis"):
+    redis = pantry["redis"]
 
-# Check multiple packages at once
-if pantry.has("numpy", "pandas"):
-    ...
-
-# Guard a function via decorator
+# Guard a function
 @pantry("numpy", "pandas")
 def analyze(data):
-    import numpy as np
-    import pandas as pd
     ...
 
-# Print a summary
+# See what's available
 print(pantry.report())
 ```
 
-## How It Works
+```{toctree}
+:maxdepth: 2
+:caption: Guide
+:hidden:
 
-`import pantry` auto-discovers your `pyproject.toml`, reads `[project.optional-dependencies]`, and probes each package. The module itself becomes a `Pantry` instance, so you can use it directly.
+getting-started
+usage
+```
 
-## API Reference
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+:hidden:
 
-### `pantry[pkg]`
+api
+architecture
+```
 
-Return the imported module. Raises `RuntimeError` if the package is not available.
+```{toctree}
+:maxdepth: 1
+:caption: Project
+:hidden:
 
-### `pantry.get(pkg, default=None) -> module | None`
-
-Return the imported module, or *default* if the package is not available.
-
-### `pantry.has(*pkgs) -> bool`
-
-True if all listed packages are installed and importable.
-
-### `pantry.has_group(group) -> bool`
-
-True if at least one package in the named group is available.
-
-### `pantry(*pkgs)`
-
-Decorator. Raises `RuntimeError` at call time if any listed package is missing.
-
-### `pantry.report() -> str`
-
-Formatted table of all probed packages with availability status.
-
-### `Pantry.discover(start=None)`
-
-Find `pyproject.toml` by walking upward from `start` (default: cwd), then probe all optional dependencies.
-
-### `Pantry.from_pyproject(path)`
-
-Parse a specific `pyproject.toml` and probe.
-
-## Requirements
-
-- Python 3.11+
-- `packaging` (only runtime dependency)
-
-## License
-
-Apache License 2.0 — See [LICENSE](https://github.com/genropy/genro-pantry/blob/main/LICENSE).
+changelog
+```
