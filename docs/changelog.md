@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 (2026-03-28)
+
+- `pantry.lazy_import("dotted.path")` — register own modules for deferred import
+- Breaks circular imports: register at top level, resolve on first `pantry["path"]` access
+- Two-step resolution: submodules via `import_module`, attributes via `getattr`
+- Results cached after first resolution
+- Separate from external dependency system (`has`, `get`, `report` unaffected)
+- Bridge toward PEP 690 (Lazy Imports)
+
 ## 0.1.0 (2026-03-28)
 
 First public release.

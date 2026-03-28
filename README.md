@@ -107,7 +107,34 @@ p = Pantry.from_pyproject("path/to/pyproject.toml")
 p = Pantry.discover(start="/my/project")
 ```
 
+## Lazy Import — Breaking Circular Dependencies
+
+Pantry has a second, independent feature for **your own project modules**: deferred
+imports that break circular dependency chains.
+
+```python
+# module_a.py — module_b imports module_a, so direct import would cycle
+import pantry
+
+pantry.lazy_import("myapp.module_b.Helper")
+
+class Service:
+    def run(self):
+        Helper = pantry["myapp.module_b.Helper"]  # import happens here
+        return Helper()
+```
+
+`lazy_import` just registers the name — no import occurs. The actual import happens
+on first `pantry["..."]` access, when all modules are fully loaded. Results are cached.
+
+This is a bridge toward [PEP 690](https://peps.python.org/pep-0690/) (Lazy Imports).
+
+> **Note:** Lazy imports are separate from external dependencies. `has()`, `get()`,
+> `report()` only know about pyproject.toml packages.
+
 ## API Summary
+
+### External Dependencies (pyproject.toml)
 
 | Syntax | Description |
 | ------ | ----------- |
@@ -122,6 +149,13 @@ p = Pantry.discover(start="/my/project")
 | `Pantry.discover()` | Explicit construction from auto-discovered pyproject.toml |
 | `Pantry.from_pyproject(path)` | Explicit construction from a specific file |
 
+### Lazy Import (own modules)
+
+| Syntax | Description |
+| ------ | ----------- |
+| `pantry.lazy_import("a.b.C")` | Register for deferred import |
+| `pantry["a.b.C"]` | Resolve on first access (cached) |
+
 ## Key Features
 
 1. **Zero config** — reads standard `pyproject.toml`, no extra files or setup
@@ -130,8 +164,9 @@ p = Pantry.discover(start="/my/project")
 4. **Multiple access patterns** — strict (`[]`), safe (`.get()`), check (`.has()`)
 5. **Decorator guards** — fail at call-time with clear install instructions
 6. **Group awareness** — check entire dependency groups at once
-7. **Availability report** — formatted table for diagnostics
-8. **Fully typed** — PEP 561 `py.typed` marker included
+7. **Lazy import** — break circular dependencies in your own modules
+8. **Availability report** — formatted table for diagnostics
+9. **Fully typed** — PEP 561 `py.typed` marker included
 
 ## Documentation
 

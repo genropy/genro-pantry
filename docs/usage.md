@@ -2,7 +2,22 @@
 
 This page covers all the access patterns Pantry provides.
 
-## Importing Modules
+Pantry has **two distinct purposes**:
+
+1. **External dependencies** — probe optional packages from `pyproject.toml`
+   (`has`, `get`, `pantry["pillow"]`, `report`, decorator)
+2. **Own modules — lazy import** — defer imports of your own project modules
+   to break circular dependencies (`lazy_import`, `pantry["myapp.models.User"]`)
+
+These two systems are separate. `has()`, `get()`, and `report()` only know
+about external dependencies. Lazy imports are accessed exclusively via
+`pantry["dotted.path"]`.
+
+---
+
+## Part 1: External Dependencies
+
+### Importing Modules
 
 Pantry gives you two ways to import optional modules: **strict** and **safe**.
 
@@ -209,6 +224,99 @@ Common examples:
 4. **Fallback**: replace hyphens with underscores
 
 This covers the vast majority of packages on PyPI without any manual configuration.
+
+---
+
+## Part 2: Lazy Import — Breaking Circular Dependencies
+
+This is a separate feature for your **own project modules**, not for external
+dependencies. It defers the actual import until first access, breaking
+circular import chains.
+
+### The Problem
+
+```python
+# module_a.py
+from myapp.module_b import Helper   # <-- module_b tries to import module_a → cycle!
+
+class Service:
+    def run(self):
+        return Helper()
+```
+
+### The Solution
+
+```python
+# module_a.py
+import pantry
+
+pantry.lazy_import("myapp.module_b.Helper")
+
+class Service:
+    def run(self):
+        Helper = pantry["myapp.module_b.Helper"]  # import happens here
+        return Helper()
+```
+
+At the top level, `lazy_import` just registers the name — no import occurs.
+When `pantry["myapp.module_b.Helper"]` is called later (inside a method),
+both modules are fully loaded and there is no cycle.
+
+### Dotted Paths
+
+`lazy_import` resolves dotted paths intelligently:
+
+| Path | Resolves to |
+| ---- | ----------- |
+| `"json"` | The `json` module |
+| `"PIL.Image"` | The `Image` submodule of PIL |
+| `"collections.OrderedDict"` | The `OrderedDict` class |
+| `"myapp.models.User"` | The `User` class in `myapp.models` |
+
+Resolution strategy:
+
+1. Try `importlib.import_module(path)` — works for modules and submodules
+2. If that fails, import the parent and use `getattr` for the last component — works for classes, functions, constants
+
+### Multiple Registrations
+
+```python
+pantry.lazy_import(
+    "myapp.models.User",
+    "myapp.db.Session",
+    "myapp.utils.format_date",
+)
+```
+
+### Caching
+
+The result is cached on first access. Subsequent `pantry["path"]` calls
+return the same object without re-importing.
+
+### Separation from External Dependencies
+
+Lazy imports and external dependency probes are **completely separate**:
+
+| Operation | External deps | Lazy imports |
+| --------- | ------------- | ------------ |
+| `pantry.has("x")` | Checks pyproject.toml | Ignores lazy |
+| `pantry.get("x")` | Returns module or None | Ignores lazy |
+| `pantry["x"]` | Checks probe data | **Also** checks lazy (priority) |
+| `pantry.report()` | Shows all probed packages | Ignores lazy |
+| `@pantry("x")` | Guards with probe data | Ignores lazy |
+
+`pantry["key"]` is the **only** accessor that works for both systems.
+Lazy imports take priority if the same key exists in both.
+
+### Relationship to PEP 690
+
+This feature is a lightweight bridge toward [PEP 690](https://peps.python.org/pep-0690/)
+(Lazy Imports), which will make all imports lazy at the interpreter level.
+Until PEP 690 is widely available, `pantry.lazy_import()` provides the key
+benefit — breaking circular imports — with minimal ceremony.
+
+When PEP 690 arrives, migration is straightforward: remove the `lazy_import()`
+calls and replace `pantry["path"]` with standard imports.
 
 ---
 

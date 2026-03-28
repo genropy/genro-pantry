@@ -2,6 +2,7 @@
 """Pantry — the capability registry."""
 
 import functools
+import importlib
 import types
 from collections.abc import Callable
 from pathlib import Path
@@ -17,9 +18,12 @@ class Pantry:
     or pass pre-built probe data directly.
     """
 
+    _UNRESOLVED = object()
+
     def __init__(self, data: dict[str, dict], groups: dict[str, list[str]] | None = None):
         self._data = data
         self._groups = groups or {}
+        self._lazy: dict[str, object] = {}
 
     # ------------------------------------------------------------------
     # Construction
@@ -83,20 +87,89 @@ class Pantry:
             return None if default is self._sentinel else default  # type: ignore[return-value]
         return entry.get("module")  # type: ignore[return-value]
 
-    def __getitem__(self, pkg: str) -> types.ModuleType:
-        """Return the imported module for *pkg*; raise if unavailable.
+    def __getitem__(self, key: str) -> types.ModuleType:
+        """Return a module (or lazy-resolved object) for *key*.
 
-        Usage::
+        Checks lazy imports first, then the pyproject.toml probe data.
+
+        External dependencies::
 
             PIL = pantry["pillow"]
+
+        Lazy-registered own modules::
+
+            pantry.lazy_import("myapp.models.User")
+            User = pantry["myapp.models.User"]
         """
-        mod = self.get(pkg)
+        # Lazy imports (own modules) take priority
+        if key in self._lazy:
+            obj = self._lazy[key]
+            if obj is self._UNRESOLVED:
+                obj = self._resolve_lazy(key)
+                self._lazy[key] = obj
+            return obj  # type: ignore[return-value]
+
+        # External dependencies from pyproject.toml
+        mod = self.get(key)
         if mod is None:
             raise RuntimeError(
-                f"Package '{pkg}' is not available. "
-                f"Install with: pip install {pkg}"
+                f"Package '{key}' is not available. "
+                f"Install with: pip install {key}"
             )
         return mod
+
+    # ------------------------------------------------------------------
+    # Lazy import (own modules — circular import breaker)
+    # ------------------------------------------------------------------
+
+    def lazy_import(self, *paths: str) -> None:
+        """Register dotted paths for deferred import.
+
+        Use this for your **own project modules** to break circular imports.
+        The actual import happens on first ``pantry["path"]`` access.
+
+        This is separate from the external dependency system (``has``, ``get``,
+        ``report``). Those operate on pyproject.toml optional-dependencies.
+
+        Example::
+
+            pantry.lazy_import("myapp.models.User", "myapp.db.Session")
+
+            # later, when all modules are loaded:
+            User = pantry["myapp.models.User"]
+        """
+        for path in paths:
+            if path not in self._lazy:
+                self._lazy[path] = self._UNRESOLVED
+
+    def _resolve_lazy(self, path: str) -> object:
+        """Import and resolve a dotted path.
+
+        Tries ``importlib.import_module(path)`` first (submodules).
+        On failure, imports the parent and uses ``getattr`` (classes, functions).
+        """
+        try:
+            return importlib.import_module(path)
+        except ImportError:
+            pass
+
+        dot = path.rfind(".")
+        if dot < 0:
+            raise RuntimeError(f"Lazy import failed: no module named '{path}'")
+
+        parent_path, attr_name = path[:dot], path[dot + 1:]
+        try:
+            parent = importlib.import_module(parent_path)
+        except ImportError:
+            raise RuntimeError(
+                f"Lazy import failed: no module named '{parent_path}'"
+            ) from None
+        try:
+            return getattr(parent, attr_name)
+        except AttributeError:
+            raise RuntimeError(
+                f"Lazy import failed: '{parent_path}' has no attribute '{attr_name}'"
+            ) from None
 
     # ------------------------------------------------------------------
     # Decorator

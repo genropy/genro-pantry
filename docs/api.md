@@ -11,23 +11,26 @@ your `pyproject.toml`. All methods below are available directly on this object.
 
 ---
 
-## `pantry[pkg]`
+## `pantry[key]`
 
 ```python
-PIL = pantry["pillow"]
+PIL = pantry["pillow"]                    # external dependency
+User = pantry["myapp.models.User"]        # lazy-imported own module
 ```
 
-Return the imported module for *pkg*.
-Raises `RuntimeError` if the package is not installed or not importable.
+Return a module or lazy-resolved object for *key*.
+
+Checks **lazy imports first** (own modules registered via `lazy_import`),
+then falls back to the **pyproject.toml probe data** (external dependencies).
 
 **Parameters:**
-: `pkg` (str) — pip package name
+: `key` (str) — pip package name or lazy-registered dotted path
 
 **Returns:**
-: `types.ModuleType`
+: `types.ModuleType` (or any object for lazy attribute access)
 
 **Raises:**
-: `RuntimeError` — if the package is not available
+: `RuntimeError` — if the key is not found in either system
 
 ---
 
@@ -116,6 +119,33 @@ group, package, module, version, ok.
 
 **Returns:**
 : `str`
+
+---
+
+## `pantry.lazy_import(*paths)` — Own Modules
+
+```python
+pantry.lazy_import("myapp.models.User")
+pantry.lazy_import("myapp.db.Session", "myapp.utils.format_date")
+```
+
+Register one or more dotted paths for deferred import. No import happens
+at registration time. The actual import occurs on first access via
+`pantry["path"]`, and the result is cached.
+
+**Use this for your own project modules** to break circular imports.
+This is completely separate from the external dependency system (`has`, `get`, `report`).
+
+**Parameters:**
+: `*paths` (str) — one or more dotted import paths
+
+**Returns:**
+: `None`
+
+**Resolution strategy:**
+
+1. Try `importlib.import_module(path)` — for modules and submodules
+2. If that fails, import the parent and `getattr` the last component — for classes, functions, constants
 
 ---
 
