@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-03-28)
+
+- License changed from Apache 2.0 to MIT
+- Promoted to Beta status
+- Enriched README and documentation (design philosophy, troubleshooting, examples)
+
 ## 0.2.0 (2026-03-28)
 
 - `pantry.lazy_import("dotted.path")` — register own modules for deferred import
