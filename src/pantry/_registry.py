@@ -34,14 +34,12 @@ class Pantry:
         """Parse *path* and probe every listed optional dependency."""
         path = Path(path)
         groups = parse_optional_deps(path)
+        all_specs = [raw for specs in groups.values() for raw in specs]
         data: dict[str, dict] = {}
-        pkg_to_groups: dict[str, list[str]] = {}
-        for group, specs in groups.items():
-            for raw in specs:
-                name = strip_specifier(raw)
-                if name not in data:
-                    data[name] = probe(name)
-                pkg_to_groups.setdefault(name, []).append(group)
+        for raw in all_specs:
+            name = strip_specifier(raw)
+            if name not in data:
+                data[name] = probe(name)
         return cls(data, groups={g: [strip_specifier(s) for s in specs] for g, specs in groups.items()})
 
     @classmethod

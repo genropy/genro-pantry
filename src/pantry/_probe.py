@@ -27,7 +27,15 @@ def strip_specifier(raw_spec: str) -> str:
     return re.split(r"[><=!;\[]", raw_spec)[0].strip()
 
 
-def resolve_module_name(pkg_name: str) -> str:
+def _get_distribution(pkg_name: str) -> importlib.metadata.Distribution | None:
+    """Return the distribution for *pkg_name*, or ``None`` if not installed."""
+    try:
+        return importlib.metadata.distribution(pkg_name)
+    except (importlib.metadata.PackageNotFoundError, ValueError):
+        return None
+
+
+def resolve_module_name(pkg_name: str, dist: importlib.metadata.Distribution | None = None) -> str:
     """Map a pip package name to the importable top-level module name.
 
     Resolution order:
@@ -36,39 +44,28 @@ def resolve_module_name(pkg_name: str) -> str:
     3. Top-level ``.py`` files (non-private) in ``dist.files``
     4. Fallback: ``pkg_name`` with hyphens replaced by underscores
     """
-    try:
-        dist = importlib.metadata.distribution(pkg_name)
-        top_level = dist.read_text("top_level.txt")
-        if top_level:
-            first = next((ln for ln in top_level.splitlines() if ln.strip()), None)
-            if first:
-                return first.strip()
-    except Exception:
-        pass
+    if dist is None:
+        dist = _get_distribution(pkg_name)
+    if dist is None:
+        return pkg_name.replace("-", "_")
 
-    try:
-        dist = importlib.metadata.distribution(pkg_name)
-        if dist.files:
-            for fp in dist.files:
-                parts = fp.parts
-                if len(parts) == 2 and parts[1] == "__init__.py":
-                    return parts[0]
-    except Exception:
-        pass
+    # Strategy 1: top_level.txt
+    top_level = dist.read_text("top_level.txt")
+    if top_level:
+        first = next((ln for ln in top_level.splitlines() if ln.strip()), None)
+        if first:
+            return first.strip()
 
-    try:
-        dist = importlib.metadata.distribution(pkg_name)
-        if dist.files:
-            for fp in dist.files:
-                parts = fp.parts
-                if (
-                    len(parts) == 1
-                    and fp.suffix == ".py"
-                    and not fp.stem.startswith("_")
-                ):
-                    return fp.stem
-    except Exception:
-        pass
+    # Strategy 2 & 3: dist.files
+    if dist.files:
+        for fp in dist.files:
+            parts = fp.parts
+            if len(parts) == 2 and parts[1] == "__init__.py":
+                return parts[0]
+        for fp in dist.files:
+            parts = fp.parts
+            if len(parts) == 1 and fp.suffix == ".py" and not fp.stem.startswith("_"):
+                return fp.stem
 
     return pkg_name.replace("-", "_")
 
@@ -79,7 +76,8 @@ def probe(pkg_name: str) -> dict[str, str | types.ModuleType | bool | None]:
     Returns a dict with keys ``pkg_name``, ``module_name``, ``module``,
     ``version``, and ``available``.  Never raises.
     """
-    module_name = resolve_module_name(pkg_name)
+    dist = _get_distribution(pkg_name)
+    module_name = resolve_module_name(pkg_name, dist)
     result: dict[str, str | types.ModuleType | bool | None] = {
         "pkg_name": pkg_name,
         "module_name": module_name,
@@ -92,6 +90,7 @@ def probe(pkg_name: str) -> dict[str, str | types.ModuleType | bool | None]:
         result["available"] = True
     except Exception:
         return result
-    with contextlib.suppress(Exception):
-        result["version"] = importlib.metadata.version(pkg_name)
+    if dist is not None:
+        with contextlib.suppress(Exception):
+            result["version"] = dist.metadata["Version"]
     return result
