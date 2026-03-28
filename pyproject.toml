@@ -6,7 +6,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "genro-pantry"
+name = "mypantry"
 version = "0.1.0"
 description = "Runtime capability registry for optional Python dependencies"
 readme = "README.md"
@@ -55,12 +55,12 @@ docs = [
     "sphinxcontrib-mermaid>=1.0.0",
 ]
 all = [
-    "genro-pantry[dev,docs]",
+    "mypantry[dev,docs]",
 ]
 
 [project.urls]
 Homepage = "https://github.com/genropy/genro-pantry"
-Documentation = "https://genro-pantry.readthedocs.io"
+Documentation = "https://mypantry.readthedocs.io"
 Repository = "https://github.com/genropy/genro-pantry"
 Issues = "https://github.com/genropy/genro-pantry/issues"
 

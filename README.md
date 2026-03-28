@@ -7,7 +7,7 @@ Pantry discovers optional dependency groups declared in `pyproject.toml`, probes
 ## Installation
 
 ```bash
-pip install genro-pantry
+pip install mypantry
 ```
 
 ## Quick start
