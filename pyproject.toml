@@ -1,0 +1,117 @@
+# Copyright 2025 Softwell S.r.l.
+# Licensed under the Apache License, Version 2.0
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "genro-pantry"
+version = "0.1.0"
+description = "Runtime capability registry for optional Python dependencies"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [
+    {name = "Genropy Team"}
+]
+keywords = [
+    "dependencies",
+    "optional",
+    "capability",
+    "registry",
+    "runtime",
+    "probe",
+    "genro",
+    "genropy"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "packaging",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0",
+]
+docs = [
+    "sphinx>=8.0.0",
+    "sphinx-rtd-theme>=3.0.0",
+    "sphinx-autodoc-typehints>=3.0.0",
+    "myst-parser>=4.0.0",
+    "sphinxcontrib-mermaid>=1.0.0",
+]
+all = [
+    "genro-pantry[dev,docs]",
+]
+
+[project.urls]
+Homepage = "https://github.com/genropy/genro-pantry"
+Documentation = "https://genro-pantry.readthedocs.io"
+Repository = "https://github.com/genropy/genro-pantry"
+Issues = "https://github.com/genropy/genro-pantry/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pantry"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=pantry --cov-report=term-missing --cov-report=html --cov-report=xml"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pantry"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+files = ["src/pantry"]
+
+[tool.coverage.run]
+source = ["src/pantry"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+    "\\.\\.\\.",
+]

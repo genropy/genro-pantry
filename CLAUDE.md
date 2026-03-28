@@ -1,0 +1,29 @@
+# Claude Code Instructions - genro-pantry
+
+**Parent Document**: This project follows all policies from the central [meta-genro-modules CLAUDE.md](https://github.com/softwellsrl/meta-genro-modules/blob/main/CLAUDE.md)
+
+## Project-Specific Context
+
+### Current Status
+- Development Status: Alpha
+- Has Implementation: Yes
+
+### Project Description
+Runtime capability registry for optional Python dependencies.
+
+---
+
+## Special Commands
+
+### "mostra righe" / "mostra le righe" / "rimetti qui le righe" (show lines)
+
+When the user asks to show code lines:
+
+1. Show **only** the requested code snippet with some context lines
+2. Number the lines
+3. **DO NOT** add considerations, evaluations, or explanations
+4. Copy the code directly into the chat
+
+---
+
+**All general policies are inherited from the parent document.**
