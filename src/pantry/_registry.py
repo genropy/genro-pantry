@@ -1,14 +1,15 @@
 # Copyright (c) 2025 Softwell S.r.l. — MIT License
 """Pantry — the capability registry."""
 
+import contextlib
 import functools
 import importlib
 import types
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from pathlib import Path
 
 from ._discovery import find_pyproject, parse_optional_deps
-from ._probe import probe, strip_specifier
+from ._probe import load_module, probe, strip_specifier
 
 
 class Pantry:
@@ -77,13 +78,17 @@ class Pantry:
     def get(self, pkg: str, default: object = _sentinel) -> types.ModuleType | None:
         """Return the imported module for *pkg*.
 
+        The module is imported lazily on first access (not at discovery time).
         Without *default*, returns ``None`` when the package is unavailable.
         With *default*, returns *default* instead.
         """
         entry = self._data.get(pkg)
         if entry is None or not entry.get("available"):
             return None if default is self._sentinel else default  # type: ignore[return-value]
-        return entry.get("module")  # type: ignore[return-value]
+        mod = load_module(entry)
+        if mod is None:
+            return None if default is self._sentinel else default  # type: ignore[return-value]
+        return mod
 
     def __getitem__(self, key: str) -> types.ModuleType:
         """Return a module (or lazy-resolved object) for *key*.
@@ -243,3 +248,27 @@ class Pantry:
         available = sum(1 for e in self._data.values() if e.get("available"))
         total = len(self._data)
         return f"Pantry({available}/{total} available)"
+
+    # ------------------------------------------------------------------
+    # Testing helpers
+    # ------------------------------------------------------------------
+
+    @contextlib.contextmanager
+    def simulate_missing(self, *pkgs: str) -> Generator[None]:
+        """Context manager that temporarily hides packages.
+
+        Useful for testing fallback behavior when optional deps are missing::
+
+            with pantry.simulate_missing("numpy"):
+                assert pantry.has("numpy") is False
+                # your fallback code runs here
+            # numpy is available again
+        """
+        saved: dict[str, dict] = {}
+        for pkg in pkgs:
+            if pkg in self._data:
+                saved[pkg] = self._data.pop(pkg)
+        try:
+            yield
+        finally:
+            self._data.update(saved)

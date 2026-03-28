@@ -71,26 +71,44 @@ def resolve_module_name(pkg_name: str, dist: importlib.metadata.Distribution | N
 
 
 def probe(pkg_name: str) -> dict[str, str | types.ModuleType | bool | None]:
-    """Probe whether *pkg_name* is installed and importable.
+    """Probe whether *pkg_name* is installed (metadata only, no import).
 
     Returns a dict with keys ``pkg_name``, ``module_name``, ``module``,
-    ``version``, and ``available``.  Never raises.
+    ``version``, and ``available``.
+
+    The ``module`` field is ``None`` until :func:`load_module` is called.
+    ``available`` is ``True`` if the distribution metadata was found.
+    Never raises.
     """
     dist = _get_distribution(pkg_name)
     module_name = resolve_module_name(pkg_name, dist)
-    result: dict[str, str | types.ModuleType | bool | None] = {
+    version = None
+    if dist is not None:
+        with contextlib.suppress(Exception):
+            version = dist.metadata["Version"]
+    return {
         "pkg_name": pkg_name,
         "module_name": module_name,
         "module": None,
-        "version": None,
-        "available": False,
+        "version": version,
+        "available": dist is not None,
     }
+
+
+def load_module(entry: dict) -> types.ModuleType | None:
+    """Import the module for a probe entry. Returns the module or ``None``.
+
+    Updates ``entry["module"]`` in place and sets ``available`` to ``False``
+    if the import fails. Never raises.
+    """
+    if entry.get("module") is not None:
+        return entry["module"]  # type: ignore[no-any-return]
+    if not entry.get("available"):
+        return None
     try:
-        result["module"] = importlib.import_module(module_name)
-        result["available"] = True
+        mod = importlib.import_module(entry["module_name"])
+        entry["module"] = mod
+        return mod
     except Exception:
-        return result
-    if dist is not None:
-        with contextlib.suppress(Exception):
-            result["version"] = dist.metadata["Version"]
-    return result
+        entry["available"] = False
+        return None

@@ -202,6 +202,53 @@ Pantry(3/4 available)
 
 ---
 
+## Testing with simulate_missing
+
+When testing your code, you need to verify behavior both when optional
+dependencies are present and when they are missing. `simulate_missing`
+provides a clean way to do this:
+
+```python
+import pantry
+
+def test_fallback_without_numpy():
+    with pantry.simulate_missing("numpy"):
+        assert pantry.has("numpy") is False
+        assert pantry.get("numpy") is None
+        # your fallback code runs here
+
+    # outside the context manager, numpy is available again
+    assert pantry.has("numpy") is True
+```
+
+### Multiple packages
+
+```python
+with pantry.simulate_missing("numpy", "pandas"):
+    assert pantry.has("numpy") is False
+    assert pantry.has("pandas") is False
+```
+
+### With decorators
+
+```python
+@pantry("numpy")
+def compute():
+    ...
+
+def test_decorator_fails_when_missing():
+    with pantry.simulate_missing("numpy"):
+        with pytest.raises(RuntimeError, match="requires: numpy"):
+            compute()
+```
+
+### Exception safety
+
+The original state is always restored, even if an exception is raised
+inside the context manager.
+
+---
+
 ## Module Name Resolution
 
 Pantry automatically resolves pip package names to their importable module names.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-03-28)
+
+- **Lazy probing**: external dependencies are no longer imported at `import pantry` time.
+  Only metadata (installed? version?) is checked at startup. The actual `import_module()`
+  happens on first `get()` or `[]` access. This makes `import pantry` fast even with
+  many heavy optional dependencies (torch, pandas, etc.)
+- **`pantry.simulate_missing(*pkgs)`**: context manager for testing fallback behavior.
+  Temporarily hides packages so `has()`, `get()`, `[]`, decorator, and `report()` see
+  them as unavailable. State is restored on exit, even on exceptions.
+
 ## 0.3.0 (2026-03-28)
 
 - License changed from Apache 2.0 to MIT

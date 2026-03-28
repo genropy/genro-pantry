@@ -213,18 +213,26 @@ calls and replace `pantry["path"]` with standard imports.
 | `pantry.lazy_import("a.b.C")` | Register for deferred import |
 | `pantry["a.b.C"]` | Resolve on first access (cached) |
 
+### Testing
+
+| Syntax | Description |
+| ------ | ----------- |
+| `with pantry.simulate_missing("pkg")` | Temporarily hide packages for testing |
+
 ## Key Features
 
 1. **Lightweight** — ~400 lines of code, single dependency (`packaging`)
 2. **Zero config** — reads standard `pyproject.toml`, no extra files or setup
-3. **Module-as-instance** — `import pantry` gives you a ready-to-use object
-4. **Smart resolution** — pip names mapped to import names automatically
-5. **Multiple access patterns** — strict (`[]`), safe (`.get()`), check (`.has()`)
-6. **Decorator guards** — fail at call-time with clear install instructions
-7. **Group awareness** — check entire dependency groups at once
-8. **Lazy import** — break circular dependencies in your own modules (PEP 690 bridge)
-9. **Availability report** — formatted table for diagnostics
-10. **Fully typed** — PEP 561 `py.typed` marker included
+3. **Lazy probing** — `import pantry` is fast: modules are imported only on first access
+4. **Module-as-instance** — `import pantry` gives you a ready-to-use object
+5. **Smart resolution** — pip names mapped to import names automatically
+6. **Multiple access patterns** — strict (`[]`), safe (`.get()`), check (`.has()`)
+7. **Decorator guards** — fail at call-time with clear install instructions
+8. **Group awareness** — check entire dependency groups at once
+9. **Lazy import** — break circular dependencies in your own modules (PEP 690 bridge)
+10. **simulate_missing** — context manager for testing fallback behavior
+11. **Availability report** — formatted table for diagnostics
+12. **Fully typed** — PEP 561 `py.typed` marker included
 
 ## Troubleshooting
 

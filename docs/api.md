@@ -149,6 +149,27 @@ This is completely separate from the external dependency system (`has`, `get`, `
 
 ---
 
+## `pantry.simulate_missing(*pkgs)` — Testing Helper
+
+```python
+with pantry.simulate_missing("numpy", "pandas"):
+    assert pantry.has("numpy") is False
+```
+
+Context manager that temporarily hides packages from the registry.
+Inside the block, `has()`, `get()`, `[]`, decorator, and `report()`
+all behave as if the listed packages are not installed.
+
+The original state is restored when the block exits, even on exceptions.
+
+**Parameters:**
+: `*pkgs` (str) — one or more pip package names to hide
+
+**Yields:**
+: `None`
+
+---
+
 ## `Pantry` Class
 
 For explicit construction when you need control over discovery.

@@ -67,9 +67,18 @@ class TestProbe:
     def test_available_package(self):
         result = probe("packaging")
         assert result["available"] is True
-        assert result["module"] is not None
+        assert result["module"] is None  # lazy: module not imported yet
         assert result["pkg_name"] == "packaging"
         assert result["version"] is not None
+
+    def test_load_module(self):
+        from pantry._probe import load_module
+
+        result = probe("packaging")
+        assert result["module"] is None
+        mod = load_module(result)
+        assert mod is not None
+        assert result["module"] is mod  # cached in entry
 
     def test_unavailable_package(self):
         result = probe("nonexistent-package-xyz-999")
