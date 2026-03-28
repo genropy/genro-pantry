@@ -4,7 +4,7 @@
 [![Tests](https://github.com/genropy/genro-pantry/actions/workflows/tests.yml/badge.svg)](https://github.com/genropy/genro-pantry/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/genropy/genro-pantry/branch/main/graph/badge.svg)](https://codecov.io/gh/genropy/genro-pantry)
 [![Python](https://img.shields.io/pypi/pyversions/mypantry)](https://pypi.org/project/mypantry/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/genropy/genro-pantry/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **A lightweight (~400 lines of code) runtime capability registry for optional Python dependencies.**
 

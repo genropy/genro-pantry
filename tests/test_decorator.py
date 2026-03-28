@@ -1,4 +1,4 @@
-# Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025 Softwell S.r.l. — MIT License
 """End-to-end test for the standalone requires() decorator."""
 
 import pytest

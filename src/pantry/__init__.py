@@ -1,4 +1,4 @@
-# Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025 Softwell S.r.l. — MIT License
 """Pantry — runtime capability registry for optional Python dependencies.
 
 Usage::

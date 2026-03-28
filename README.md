@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/genropy/genro-pantry/branch/main/graph/badge.svg)](https://codecov.io/gh/genropy/genro-pantry)
 [![Documentation](https://readthedocs.org/projects/mypantry/badge/?version=latest)](https://mypantry.readthedocs.io/en/latest/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 **mypantry** is a lightweight (~400 lines of code) runtime capability registry for optional Python dependencies. It discovers dependency groups from your `pyproject.toml`, probes which packages are actually installed, and gives you a clean API to check availability, import modules safely, and guard functions with decorators.
@@ -279,7 +279,7 @@ genro-pantry/
 
 - **Status**: Beta
 - **Python**: 3.11, 3.12, 3.13
-- **License**: Apache 2.0
+- **License**: MIT
 
 ## Contributing
 
@@ -288,4 +288,4 @@ Please open an issue first to discuss what you'd like to change.
 
 ## License
 
-Copyright 2025 Softwell S.r.l. — Licensed under the [Apache License 2.0](LICENSE).
+Copyright (c) 2025 Softwell S.r.l. — [MIT License](LICENSE).

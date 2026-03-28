@@ -1,4 +1,4 @@
-# Copyright 2025 Softwell S.r.l. - SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025 Softwell S.r.l. — MIT License
 """Resolve pip package names to importable modules and probe availability."""
 
 import contextlib

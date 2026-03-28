@@ -23,4 +23,4 @@ First public release.
 - `pantry.report()` — formatted summary table
 - Smart module name resolution (pip name → importable name)
 - PEP 561 typed (`py.typed` marker)
-- Apache 2.0 license
+- MIT license
