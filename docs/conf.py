@@ -32,7 +32,7 @@ except Exception:
 version = ".".join(release.split(".")[:2])
 
 # Project information
-project = "Genro Pantry"
+project = "mypantry"
 copyright = "2025, Softwell S.r.l."
 author = "Genropy Team"
 
