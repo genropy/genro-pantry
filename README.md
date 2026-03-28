@@ -277,7 +277,7 @@ genro-pantry/
 
 ## Project Status
 
-- **Status**: Alpha
+- **Status**: Beta
 - **Python**: 3.11, 3.12, 3.13
 - **License**: Apache 2.0
 
