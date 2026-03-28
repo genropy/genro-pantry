@@ -1,6 +1,6 @@
 # mypantry
 
-[![PyPI version](https://img.shields.io/pypi/v/mypantry?cacheSeconds=300)](https://pypi.org/project/mypantry/)
+[![PyPI version](https://img.shields.io/pypi/v/mypantry)](https://pypi.org/project/mypantry/)
 [![Tests](https://github.com/genropy/genro-pantry/actions/workflows/tests.yml/badge.svg)](https://github.com/genropy/genro-pantry/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/genropy/genro-pantry/branch/main/graph/badge.svg)](https://codecov.io/gh/genropy/genro-pantry)
 [![Documentation](https://readthedocs.org/projects/mypantry/badge/?version=latest)](https://mypantry.readthedocs.io/en/latest/)
