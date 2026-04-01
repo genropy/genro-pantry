@@ -61,6 +61,40 @@ redis = pantry.get("redis", None)
 
 ---
 
+## Configuration-Driven Imports
+
+When the package name comes from a configuration file or database,
+pantry loads it dynamically in one line:
+
+```python
+import pantry
+
+# The driver name comes from site configuration
+driver_name = config.get("printer_driver")   # e.g. "zebra-driver"
+driver = pantry[driver_name]                  # import or RuntimeError
+```
+
+If the driver is not installed, the error message tells the user exactly
+what to do: `RuntimeError: Package 'zebra-driver' is not available. Install with: pip install zebra-driver`
+
+This is common in industrial/enterprise applications where different
+deployments have different hardware — printers, PLC controllers, barcode
+readers, scales — each with its own optional driver package:
+
+```python
+import pantry
+
+# Load all drivers specified in site config
+drivers = {}
+for device, pkg_name in site_config["devices"].items():
+    if pantry.has(pkg_name):
+        drivers[device] = pantry[pkg_name]
+    else:
+        log.warning(f"Driver {pkg_name} not installed for {device}")
+```
+
+---
+
 ## Decorator
 
 Guard functions so they fail at call-time with a clear message:

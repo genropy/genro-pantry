@@ -24,6 +24,13 @@ The entire source is one file: [`_registry.py`](src/pantry/_registry.py). Read i
 | Manual checks at every entry point | `@pantry("pkg1", "pkg2")` |
 | Move imports inside functions for circular deps | `pantry.lazy_import("my.module.Class")` |
 
+## Use Cases
+
+- **Libraries with optional features** — data science, ML, web frameworks with pluggable backends
+- **Industrial/enterprise applications** — different sites have different hardware (printers, PLC, barcode readers, scales) each with its own optional driver package
+- **Projects with circular imports** — interconnected modules that need deferred resolution
+- **Any codebase** where optional dependencies vary by deployment environment
+
 ## Installation
 
 ```bash
@@ -99,6 +106,19 @@ redis    redis   -        ✗
 ──────────────────────────────────────────────
 available: 3/4
 ```
+
+## Configuration-Driven Imports
+
+When the package name comes from configuration, pantry loads it dynamically:
+
+```python
+# The driver name comes from site/customer config
+driver_name = config.get("printer_driver")   # "zebra-driver"
+driver = pantry[driver_name]                  # import or RuntimeError
+```
+
+One line — no if/else, no try/except. If the driver is missing, the error
+says exactly what to install.
 
 ## How It Works
 
