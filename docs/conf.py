@@ -1,6 +1,6 @@
 # Copyright (c) 2025 Softwell S.r.l. — MIT License
 
-"""Sphinx configuration for Genro Pantry documentation."""
+"""Sphinx configuration for mypantry documentation."""
 
 import sys
 from pathlib import Path

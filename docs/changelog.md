@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 (2026-04-01)
+
+**Breaking change**: complete architecture rewrite.
+
+- **Removed pyproject.toml dependency** — Pantry now uses `importlib.metadata` directly.
+  Works everywhere: development, installed packages, Docker, notebooks.
+- **Removed `packaging` dependency** — zero external dependencies, pure stdlib.
+- **Removed dependency groups** — `has_group()` removed. Use `has()` directly.
+- **Removed `Pantry.discover()` and `Pantry.from_pyproject()`** — no longer needed.
+- **On-demand probing** — nothing happens at `import pantry` time. Packages are
+  probed on first `has()`, `get()`, or `[]` call.
+- **Added `pantry.version(pkg)`** — returns installed version string.
+- **`report()` accepts package names** — `pantry.report("numpy", "pandas")`.
+- **Recommended pattern**: `if pantry.has("pkg"): import pkg` — works with pipreqs and IDEs.
+- Source reduced from ~400 to ~300 lines (one file + bootstrap).
+
 ## 0.4.0 (2026-03-28)
 
 - **Lazy probing**: external dependencies are no longer imported at `import pantry` time.

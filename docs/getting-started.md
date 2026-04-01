@@ -6,111 +6,62 @@
 pip install mypantry
 ```
 
-The only runtime dependency is [`packaging`](https://pypi.org/project/packaging/).
-
-For development (tests, linting, type checking):
-
-```bash
-pip install mypantry[dev]
-```
-
-## Setup
-
-Pantry reads your `pyproject.toml` automatically. No extra configuration files,
-no plugin registration, no setup code.
-
-Declare optional dependencies in your `pyproject.toml` as you normally would:
-
-```toml
-[project]
-name = "my-awesome-lib"
-
-[project.optional-dependencies]
-imaging = ["pillow>=10.0", "wand"]
-data = ["numpy>=1.24", "pandas>=2.0"]
-cache = ["redis>=5.0"]
-```
-
-That's it. Pantry will find this file and probe every package listed.
+Zero dependencies — only Python standard library.
 
 ## First Use
 
 ```python
 import pantry
 
-# Check what's available
-print(pantry.report())
+# Check if numpy is installed
+print(pantry.has("numpy"))    # True or False
+
+# Check version
+print(pantry.version("numpy"))  # "1.26.4" or None
+
+# Import safely
+np = pantry.get("numpy")     # module or None
+
+# Import strictly
+np = pantry["numpy"]          # module or RuntimeError
 ```
 
-Output:
+## Recommended Pattern
 
-```text
-pantry report
-──────────────────────────────────────────────────────
-group     package  module  version  ok
-imaging   pillow   PIL     10.4.0   ✓
-imaging   wand     wand    -        ✗
-data      numpy    numpy   1.26.4   ✓
-data      pandas   pandas  2.1.4    ✓
-cache     redis    redis   -        ✗
-──────────────────────────────────────────────────────
-available: 3/5
-```
-
-The `repr` gives a quick summary too:
+The best way to use mypantry is to guard standard imports at the top of
+your file:
 
 ```python
->>> import pantry
->>> pantry
-Pantry(3/5 available)
+import pantry
+
+if pantry.has("numpy"):
+    import numpy as np
+
+if pantry.has("pillow"):
+    from PIL import Image
+
+@pantry("numpy", "pillow")
+def process(path):
+    img = Image.open(path)
+    return np.array(img)
 ```
 
-## How Discovery Works
+This pattern gives you:
 
-When you `import pantry`, the module:
+- **pipreqs** sees the real imports → dependency detection works
+- **IDE autocompletion** works → standard Python imports
+- **pantry** provides clean error messages → `RuntimeError` with `pip install X`
 
-1. **Walks up** from the current working directory looking for `pyproject.toml`
-2. **Reads** `[project.optional-dependencies]` from it
-3. **Probes** each listed package (is it installed? is it importable? what version?)
-4. **Replaces** the module object with a `Pantry` instance
+## How It Works
 
-This means `import pantry` gives you an object you can use directly —
-no factory calls needed for the common case.
+When you `import pantry`, the module replaces itself with a `Pantry` instance.
 
-```mermaid
-graph TD
-    A["import pantry"] --> B["Walk up from cwd"]
-    B --> C["Find pyproject.toml"]
-    C --> D["Read optional-dependencies"]
-    D --> E["Probe each package"]
-    E --> F["Pantry instance ready"]
-```
+- `has()` — checks `importlib.metadata` (is the distribution installed?)
+- `get()` / `[]` — imports the module lazily on first access, caches the result
+- Smart module name resolution: `pillow` → `PIL`, `scikit-learn` → `sklearn`
 
-### What if there's no pyproject.toml?
-
-If no `pyproject.toml` is found (e.g. in a REPL session), Pantry creates
-an empty instance. `import pantry` never fails — `has()` will return `False`
-for everything, and `report()` will show "(no optional dependencies declared)".
-
-## Explicit Construction
-
-If you need to target a specific `pyproject.toml` or control the discovery path:
-
-```python
-from pantry import Pantry
-
-# From a specific file
-p = Pantry.from_pyproject("path/to/pyproject.toml")
-
-# Walk upward from a given directory
-p = Pantry.discover(start="/my/project")
-```
-
-This is useful for:
-
-- **Testing** — point to a fixture `pyproject.toml`
-- **Multi-project setups** — probe dependencies for a specific project
-- **CLI tools** — discover from a user-provided path
+No configuration files, no startup scanning, no pyproject.toml dependency.
+Works in any context: dev, installed, Docker, notebooks.
 
 ## Next Steps
 

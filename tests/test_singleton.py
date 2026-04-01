@@ -13,18 +13,18 @@ class TestModuleInstance:
         import pantry
         assert hasattr(pantry, "has")
         assert hasattr(pantry, "get")
-        assert hasattr(pantry, "has_group")
         assert hasattr(pantry, "report")
+        assert hasattr(pantry, "lazy_import")
+        assert hasattr(pantry, "simulate_missing")
 
     def test_getitem_available(self):
         import pantry
-        # 'ruff' is in dev optional-dependencies — always installed in dev
-        mod = pantry["ruff"]
-        assert mod.__name__ == "ruff"
+        mod = pantry["pip"]
+        assert mod.__name__ == "pip"
 
     def test_get_available(self):
         import pantry
-        mod = pantry.get("ruff")
+        mod = pantry.get("pip")
         assert mod is not None
 
     def test_pantry_class_accessible(self):
@@ -34,7 +34,7 @@ class TestModuleInstance:
     def test_callable_decorator(self):
         import pantry
 
-        @pantry("ruff")
+        @pantry("pip")
         def use_pkg():
             return "ok"
 
