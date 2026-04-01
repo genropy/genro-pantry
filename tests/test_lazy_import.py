@@ -113,18 +113,17 @@ class TestLazyVsProbe:
 
     def test_get_ignores_lazy(self):
         p = Pantry()
-        p.lazy_import("json")
-        # json is stdlib, no pip distribution — get returns None
-        assert p.get("json") is None
+        p.lazy_import("no_such_module_xyz_999")
+        # not importable, no pip distribution — get returns None
+        assert p.get("no_such_module_xyz_999") is None
 
     def test_has_ignores_lazy(self):
         p = Pantry()
-        p.lazy_import("json")
-        # json is stdlib, no pip distribution
-        assert p.has("json") is False
+        p.lazy_import("no_such_module_xyz_999")
+        assert p.has("no_such_module_xyz_999") is False
 
     def test_report_ignores_lazy(self):
         p = Pantry()
-        p.lazy_import("json")
+        p.lazy_import("no_such_module_xyz_999")
         report = p.report()
-        assert "json" not in report
+        assert "no_such_module_xyz_999" not in report

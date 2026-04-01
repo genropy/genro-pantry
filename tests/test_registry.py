@@ -146,6 +146,30 @@ class TestSmartResolution:
             assert entry["module_name"] == "PIL"
 
 
+class TestImportFallback:
+    def test_stdlib_module_without_distribution(self):
+        """Stdlib modules have no pip distribution but are importable."""
+        p = Pantry()
+        assert p.has("json") is True
+
+    def test_get_stdlib_module(self):
+        import json
+
+        p = Pantry()
+        mod = p.get("json")
+        assert mod is json
+
+    def test_getitem_stdlib_module(self):
+        import json
+
+        p = Pantry()
+        assert p["json"] is json
+
+    def test_truly_missing_module(self):
+        p = Pantry()
+        assert p.has("nonexistent_xyz_999") is False
+
+
 class TestCaching:
     def test_probe_cached(self):
         p = Pantry()

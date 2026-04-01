@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mypantry"
-version = "0.5.0"
+version = "0.5.1"
 description = "Runtime capability registry for optional Python dependencies"
 readme = "README.md"
 license = "MIT"

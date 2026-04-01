@@ -29,24 +29,42 @@ class Pantry:
     # ------------------------------------------------------------------
 
     def _probe(self, pkg: str) -> dict:
-        """Probe a package and cache the result."""
+        """Probe a package and cache the result.
+
+        First checks distribution metadata (pip name). If not found,
+        falls back to trying a direct import — this handles modules
+        installed by other packages (e.g. ``past`` from ``future``).
+        """
         if pkg in self._cache:
             return self._cache[pkg]
         dist = self._get_distribution(pkg)
         module_name = self._resolve_module_name(pkg, dist)
         version = None
+        available = dist is not None
         if dist is not None:
             with contextlib.suppress(Exception):
                 version = dist.metadata["Version"]
+        elif self._can_import(module_name):
+            # No pip distribution, but the module is importable
+            # (e.g. "past" installed by the "future" package)
+            available = True
         entry = {
             "pkg_name": pkg,
             "module_name": module_name,
             "module": None,
             "version": version,
-            "available": dist is not None,
+            "available": available,
         }
         self._cache[pkg] = entry
         return entry
+
+    def _can_import(self, module_name: str) -> bool:
+        """Return ``True`` if *module_name* is importable, without keeping it loaded."""
+        try:
+            importlib.import_module(module_name)
+            return True
+        except Exception:
+            return False
 
     def _get_distribution(self, pkg_name: str) -> importlib.metadata.Distribution | None:
         """Return the distribution for *pkg_name*, or ``None``."""
